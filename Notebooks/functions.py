@@ -61,6 +61,3 @@ def split_road_segments(road, intersection_points):
                 new_segments.append(segment)
         segments = new_segments
     return segments
-
-
-
