@@ -14,27 +14,40 @@ def extract_coords(geometry):
 def find_intersections(roads):
     """Finds intersection points of road segments."""
     intersections = []
-    for i, road1 in roads.iterrows():
-        for j, road2 in roads.iterrows():
+    
+    # Iterate through all pairs of roads
+    for i, road1 in enumerate(roads.geometry):
+        for j, road2 in enumerate(roads.geometry):
             if i >= j:
-                continue  # Avoid self-comparison and duplicates
-            inter = road1.geometry.intersection(road2.geometry)
+                continue  # Avoid duplicate comparisons and self-intersections
+            
+            # Find the intersection between the two geometries
+            inter = road1.intersection(road2)
+            
+            # If there is no intersection, skip
             if inter.is_empty:
                 continue
-            # Handle both Point and GeometryCollection cases
-            if isinstance(inter, Point):
+            
+            # Handle intersections
+            if isinstance(inter, Point):  # Single Point intersection
                 intersections.append(inter)
-            elif isinstance(inter, GeometryCollection):
+            elif isinstance(inter, GeometryCollection):  # Multiple intersections
                 for geom in inter.geoms:
-                    if isinstance(geom, Point):
+                    if isinstance(geom, Point):  # Only keep Points
                         intersections.append(geom)
-    return intersections
+    
+    # Remove duplicate intersection points by converting to a set and back to a list
+    unique_intersections = list({(point.x, point.y): point for point in intersections}.values())
+    
+    return unique_intersections
+
 
 # Split roads into segments at intersections
 def split_road_segments(road, intersection_points):
     """Splits a road into segments at given intersection points."""
     segments = [road]
     for point in intersection_points:
+        print("Entered Loop")
         new_segments = []
         for segment in segments:
             if segment.intersects(point):
